@@ -22,6 +22,7 @@ class SourceDiscord(AbstractSource):
         headers = {"Authorization": f"Bot {config['server_token']}"}
         response = requests.get(url, headers=headers)
         j_response = response.json()
+        print(j_response)
         if "id" not in j_response:
             return False, "missing id"
         if j_response["id"] != config["bot_id"]:
@@ -32,10 +33,17 @@ class SourceDiscord(AbstractSource):
         # print(config["initial_timestamp"])
         # initial_timestamp = config["initial_timestamp"]
         config["job_time"] = datetime.datetime.now()
+
+        channel_stream = Channels(config)
+        message_stream = Messages(config)
+        # message_stream.deltas = [channel_stream.name]
+        # message_stream.cursor_field = 'channel_id'
         return [
-            ServerPreview(config),
-            Channels(config),
-            # Messages(config, initial_timestamp=initial_timestamp),
-            Members(config),
-            Roles(config),
+            # ServerPreview(config),
+            channel_stream,
+            message_stream,
+            # Members(config),
+            # Roles(config),
+
+
         ]
