@@ -22,7 +22,6 @@ class SourceDiscord(AbstractSource):
         headers = {"Authorization": f"Bot {config['server_token']}"}
         response = requests.get(url, headers=headers)
         j_response = response.json()
-        print(j_response)
         if "id" not in j_response:
             return False, "missing id"
         if j_response["id"] != config["bot_id"]:
