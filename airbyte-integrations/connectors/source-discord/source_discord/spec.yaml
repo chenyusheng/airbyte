@@ -33,5 +33,6 @@ connectionSpecification:
       type: string
       title: channel id
       description: The channel that needs to be obtained. If more than one please use "," splicing
+      default: ""
 #    initial_timestamp:
 #      type: string
