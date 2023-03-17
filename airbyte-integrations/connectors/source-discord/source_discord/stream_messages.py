@@ -26,13 +26,13 @@ class DiscordMessagesStream(HttpStream, ABC):
         super().__init__()
         self.config = config
         self.message_limit = 2
+        self.current_page = 0
+        self.max_page_limit = 5
+        self.channel_id_current_page_limit = {}
         self.server_token = config["server_token"]
-        self.guild_id = '864829036294307881'
+        self.guild_id = config["guild_id"]
         self.job_time = config['job_time']
-        self.total = 0
-        self.total_limit = 2
         self._cursor_value = datetime.utcnow()
-        self.run_times = 0
         self.channels_stream = Channels(
             config=config
         )
@@ -43,7 +43,8 @@ class DiscordMessagesStream(HttpStream, ABC):
     def request_params(
             self, stream_state: Mapping[str, Any], stream_slice: Mapping[str, any] = None, next_page_token: Mapping[str, Any] = None
     ) -> MutableMapping[str, Any]:
-        print('request_params------', self.run_times)
+
+        print('request_params---->>>>> stream_slice', stream_slice)
         if not next_page_token:
             return {'limit': self.message_limit}
 
@@ -51,76 +52,26 @@ class DiscordMessagesStream(HttpStream, ABC):
 
     def next_page_token(self, response: requests.Response) -> Optional[Mapping[str, Any]]:
         messages = response.json()
-        print('self.total ***********', self.total)
-
-        if self.total >= self.total_limit:
-            print('self.total~~~~~~~~~~', self.total, self.total_limit)
-            return None
 
         if len(messages) < self.message_limit:
-            print('self.total~~~~~~~~~~', self.total, self.total_limit)
             return None
 
+        channel_id = messages[0]['channel_id']
+
+        if not channel_id in self.channel_id_current_page_limit.keys():
+            self.channel_id_current_page_limit[channel_id] = 1
+        else:
+            self.channel_id_current_page_limit[channel_id] = self.channel_id_current_page_limit[channel_id] + 1
+
+        if self.channel_id_current_page_limit[channel_id] >= self.max_page_limit:
+            return None
+
+        print('channel_id_current_page_limit ---->>>>>', self.channel_id_current_page_limit[channel_id])
         return {'last_message_id': messages[-1]['id']}
-
-    def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
-
-        records = response.json()
-        for record in records:
-            yield self.transform(record=record, **kwargs)
-
-        # self.run_times = self.run_times + 1
-        #
-        # messages = response.json()
-        # if not messages or len(messages) <= 0:
-        #     return []
-        #
-        # message_results = []
-        # for message in messages:
-        #     self.total = self.total + 1
-        #     reaction_count = 0
-        #
-        #     if 'reactions' in message.keys():
-        #         reactions = message['reactions']
-        #         for reaction in reactions:
-        #             reaction_count = reaction_count + reaction['count']
-        #
-        #     thread = None
-        #     if 'thread' in message.keys():
-        #         thread = message['thread']
-        #
-        #     result = {
-        #         'message_id': message['id'],
-        #         'message_type': message['type'],
-        #         'content': message['content'],
-        #         'message_timestamp': message['timestamp'],
-        #         'edited_timestamp': message['edited_timestamp'],
-        #         'timestamp': self.job_time,
-        #         'channel_id': message['channel_id'],
-        #         'guild_id': self.guild_id,
-        #         'author_id': message['author']['id'],
-        #         'author_username': message['author']['username'],
-        #         'referenced_message_id': message['referenced_message']['id'] if 'referenced_message' in message.keys() else None,
-        #         'referenced_message_type': message['referenced_message']['type'] if 'referenced_message' in message.keys() else None,
-        #         'reaction_count': reaction_count,
-        #         'thread_id': thread['id'] if thread else None,
-        #         'thread_parent_id': thread['parent_id'] if thread else None,
-        #         'thread_owner_id': thread['owner_id'] if thread else None,
-        #         'thread_name': thread['name'] if thread else None,
-        #         'thread_message_count': thread['message_count'] if thread else None,
-        #         'thread_message_member_count': thread['member_count'] if thread else None,
-        #         'mention_count': len(message['mentions']),
-        #         'mention_everyone': message['mention_everyone']
-        #     }
-        #     print(result)
-        #     message_results.append(result)
-        # print('self.run_times-------------', self.run_times)
-        # return []
 
     def read_records(
             self, stream_slice: Optional[Mapping[str, Any]] = None, stream_state: Mapping[str, Any] = None, **kwargs
     ) -> Iterable[Mapping[str, Any]]:
-        print('supper----->>>>>>>>', stream_slice)
         try:
             yield from super().read_records(stream_slice=stream_slice, **kwargs)
         except HTTPError as e:
@@ -139,38 +90,59 @@ class Messages(DiscordMessagesStream):
                 yield record
 
     def path(self, stream_slice: Mapping[str, Any], **kwargs) -> str:
-        print("------------>>>>>>>>>stream_slicestream_slicestream_slicestream_slice", stream_slice)
-        print('====>>>>>url', f"api/v10/channels/{stream_slice['id']}/messages")
+        url = f"api/v10/channels/{stream_slice['id']}/messages"
+        print('message --------------- url path', url)
         return f"api/v10/channels/{stream_slice['id']}/messages"
-        # return f"api/v10/channels/864833940036386826/messages"
-        # return f"api/v10/channels/1085514352913829909/messages?limit=100"
 
     def read_records(
             self, stream_slice: Optional[Mapping[str, Any]] = None, stream_state: Mapping[str, Any] = None, **kwargs
     ) -> Iterable[Mapping[str, Any]]:
-        print('read_records-------->>>>', stream_slice)
         incremental_records = self.read_incremental(self.channels_stream, stream_state=stream_state)
         for issue in incremental_records:
             stream_slice = {"id": issue["id"]}
-            print('issue ========>>>>', issue)
-            print(stream_slice)
-            print(stream_state)
             yield from super().read_records(stream_slice=stream_slice, stream_state=stream_state, **kwargs)
 
     def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
         records = response.json()
         for record in records:
+            time.sleep(5)
             yield self.transform(record=record, **kwargs)
 
     def transform(self, record: MutableMapping[str, Any], stream_slice: Mapping[str, Any], **kwargs) -> MutableMapping[str, Any]:
-        print('Messages----->>>>', record)
-        return record
+        reaction_count = 0
 
+        if 'reactions' in record.keys():
+            reactions = record['reactions']
+            for reaction in reactions:
+                reaction_count = reaction_count + reaction['count']
 
+        thread = None
+        if 'thread' in record.keys():
+            thread = record['thread']
 
+        result = {
+            'message_id': record['id'],
+            'message_type': record['type'],
+            'content': record['content'],
+            'message_timestamp': record['timestamp'],
+            'edited_timestamp': record['edited_timestamp'],
+            'timestamp': self.job_time,
+            'channel_id': record['channel_id'],
+            'guild_id': self.guild_id,
+            'author_id': record['author']['id'],
+            'author_username': record['author']['username'],
+            'referenced_message_id': record['referenced_message']['id'] if 'referenced_message' in record.keys() else None,
+            'referenced_message_type': record['referenced_message']['type'] if 'referenced_message' in record.keys() else None,
+            'reaction_count': reaction_count,
+            'thread_id': thread['id'] if thread else None,
+            'thread_parent_id': thread['parent_id'] if thread else None,
+            'thread_owner_id': thread['owner_id'] if thread else None,
+            'thread_name': thread['name'] if thread else None,
+            'thread_message_count': thread['message_count'] if thread else None,
+            'thread_message_member_count': thread['member_count'] if thread else None,
+            'mention_count': len(record['mentions']),
+            'mention_everyone': record['mention_everyone']
+        }
+        print('message ****** transform ------->>> result', result)
+        return result
 
-# Discord returns data with different time formats,
-# so there is need to "normalize" it
-def string_to_timestamp(text_timestamp: str) -> datetime:
-    clean_text_timestamp = text_timestamp[0:19]
-    return datetime.strptime(clean_text_timestamp, "%Y-%m-%dT%H:%M:%S")

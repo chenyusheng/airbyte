@@ -27,7 +27,7 @@ class DiscordChannelsStream(HttpStream, ABC):
             self, stream_slice: Optional[Mapping[str, Any]] = None, stream_state: Mapping[str, Any] = None, **kwargs
     ) -> Iterable[Mapping[str, Any]]:
         try:
-            yield from super().read_records(stream_slice={'aa': 'aa'},**kwargs)
+            yield from super().read_records(**kwargs)
         except HTTPError as e:
             if not (self.skip_http_status_codes and e.response.status_code in self.skip_http_status_codes):
                 raise e
@@ -51,5 +51,4 @@ class DiscordChannelsStream(HttpStream, ABC):
 
 class Channels(DiscordChannelsStream):
     def path(self, stream_slice: Mapping[str, Any], **kwargs) -> str:
-        print('ChannelsChannelsChannels read_records', stream_slice)
         return f"api/v10/guilds/{self.guild_id}/channels"
