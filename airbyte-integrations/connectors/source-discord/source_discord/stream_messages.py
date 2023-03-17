@@ -79,7 +79,7 @@ class DiscordMessagesStream(HttpStream, ABC):
 
 
 class Messages(DiscordMessagesStream):
-    cursor_field = "updated"
+    cursor_field = "message_timestamp"
 
     def read_incremental(self, stream_instance: Stream, stream_state: MutableMapping[str, Any]):
         slices = stream_instance.stream_slices(sync_mode=SyncMode.incremental, stream_state=stream_state)
@@ -105,7 +105,7 @@ class Messages(DiscordMessagesStream):
 
     def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
         records = response.json()
-        time.sleep(5)
+        time.sleep(10)
         for record in records:
             yield self.transform(record=record, **kwargs)
 
