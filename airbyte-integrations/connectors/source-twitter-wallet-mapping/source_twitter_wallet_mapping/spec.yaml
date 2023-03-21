@@ -6,6 +6,8 @@ connectionSpecification:
   required:
     - api_key
     - twitter_uri
+    - fp_api
+    - x_token
   properties:
     api_key:
       title: API Key Token
@@ -16,3 +18,12 @@ connectionSpecification:
       title: Twitter Uri
       description: Twitter Uri
       type: string
+    fp_api:
+      title: Footprint API
+      description: Footprint API
+      type: string
+    x_token:
+      title: X-Token
+      description: x-token
+      type: string
+      airbyte_secret: true

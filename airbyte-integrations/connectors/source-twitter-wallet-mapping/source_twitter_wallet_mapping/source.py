@@ -24,6 +24,8 @@ class TwitterWalletMapping(HttpStream, ABC):
         super().__init__()
         self.api_key = config["api_key"]
         self.twitter_uri = config["twitter_uri"]
+        self.fp_api = config["fp_api"]
+        self.x_token = config["x_token"]
 
         self.job_time = datetime.datetime.now()
         self.auth = authenticator
@@ -102,8 +104,8 @@ class TwitterWalletMapping(HttpStream, ABC):
 
         # 写入 footprint wallet_address_mapping
         requests.post(
-            url='https://preview.footprint.network/api/v1/fga/wallet-address-mapping',
-            headers={'x-token': '37c6cb13-8be7-43e7-b9bf-dabac84c7fc5'},
+            url=self.fp_api,
+            headers={'x-token': self.x_token},
             json={'list': reply_wallet_list}
         )
         print(f'''reply_wallet_list: {len(reply_wallet_list), pydash.get(reply_wallet_list, '0')}''')
@@ -140,8 +142,10 @@ class TwitterWalletMapping(HttpStream, ABC):
 class SourceTwitterWalletMapping(AbstractSource):
     def check_connection(self, logger, config) -> Tuple[bool, any]:
         api_key = config["api_key"]
-        screen_name = config["screen_name"]
-        if api_key and screen_name:
+        twitter_uri = config["twitter_uri"]
+        x_token = config["x_token"]
+        fp_api = config["fp_api"]
+        if api_key and twitter_uri and x_token and fp_api:
             return True, None
         else:
             return False, "Api key of Screen Name should not be null!"
