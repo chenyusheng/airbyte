@@ -17,7 +17,8 @@ from airbyte_cdk.sources.streams.http.auth import TokenAuthenticator
 
 # Basic full refresh stream
 class TwitterWalletMapping(HttpStream, ABC):
-    primary_key = "id"
+    primary_key = "reply_id"
+    cursor_field = "reply_created_at"
     url_base = "https://api.twitter.com"
 
     def __init__(self, authenticator: TokenAuthenticator, config: Mapping[str, Any], **kwargs):
@@ -26,6 +27,7 @@ class TwitterWalletMapping(HttpStream, ABC):
         self.twitter_uri = config["twitter_uri"]
         self.fp_api = config["fp_api"]
         self.x_token = config["x_token"]
+        self.submit_id = config["submit_id"]
 
         self.job_time = datetime.datetime.now()
         self.auth = authenticator
@@ -89,18 +91,28 @@ class TwitterWalletMapping(HttpStream, ABC):
             return reply_detail_data
 
         for reply_detail in result['data']:
-            reply_id = reply_detail['author_id']
+            reply_author_id = reply_detail['author_id']
             reply_text = reply_detail['text']
-            reply_user = pydash.find(result['includes']['users'], {'id': reply_id})
+            reply_author = pydash.find(result['includes']['users'], {'id': reply_author_id})
 
-            reply_wallet_list.extend(self.format_reply_text(reply_id, reply_user['username'], reply_text))
+            reply_wallet_list.extend(self.format_reply_text(reply_author_id, reply_author['username'], reply_text))
 
-            # reply detail appends name and username
-            reply_detail.update({
-                'name': reply_user['name'],
-                'username': reply_user['username']
+            # reply detail data
+            reply_detail_data.append({
+                'submit_id': self.submit_id,
+                'tweet_uri': self.twitter_uri,
+                'tweet_id': str(self.twitter_uri).split('/')[5],
+                'tweet_author_name': str(self.twitter_uri).split('/')[3],
+                'reply_id': reply_detail['id'],
+                'reply_author_id': reply_author_id,
+                'reply_name': reply_author['name'],
+                'reply_username': reply_author['username'],
+                'reply_text': reply_text,
+                'reply_public_metrics': reply_detail['public_metrics'],
+                'reply_edit_history_tweet_ids': reply_detail['edit_history_tweet_ids'],
+                'reply_created_at': reply_detail['created_at'],
+                'job_time': self.job_time
             })
-            reply_detail_data.append(reply_detail)
 
         # 写入 footprint wallet_address_mapping
         requests.post(
@@ -112,7 +124,7 @@ class TwitterWalletMapping(HttpStream, ABC):
 
         return reply_detail_data
 
-    def format_reply_text(self, reply_id, reply_user_name, reply_text):
+    def format_reply_text(self, reply_author_id, reply_author_name, reply_text):
         wallet_json_list = []
 
         # 定义以太坊钱包地址的正则表达式
@@ -133,8 +145,8 @@ class TwitterWalletMapping(HttpStream, ABC):
         if wallet_addresses:
             for wallet_address in wallet_addresses:
                 wallet_json_list.append({
-                    'twitterId': reply_id,
-                    'twitterName': reply_user_name,
+                    'twitterId': reply_author_id,
+                    'twitterName': reply_author_name,
                     'walletAddress': wallet_address
                 })
         return wallet_json_list

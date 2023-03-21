@@ -2,22 +2,34 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "properties": {
-    "id": {
+    "submit_id": {
       "type": ["null", "string"]
     },
-    "author_id": {
+    "tweet_uri": {
       "type": ["null", "string"]
     },
-    "text": {
+    "tweet_id": {
       "type": ["null", "string"]
     },
-    "name": {
+    "tweet_author": {
       "type": ["null", "string"]
     },
-    "username": {
+    "reply_id": {
       "type": ["null", "string"]
     },
-    "public_metrics": {
+    "reply_author_id": {
+      "type": ["null", "string"]
+    },
+    "reply_text": {
+      "type": ["null", "string"]
+    },
+    "reply_name": {
+      "type": ["null", "string"]
+    },
+    "reply_username": {
+      "type": ["null", "string"]
+    },
+    "reply_public_metrics": {
       "type": ["null", "object"]
     },
     "edit_history_tweet_ids": {
@@ -26,7 +38,7 @@
         "type": ["null", "string"]
       }
     },
-    "created_at": {
+    "reply_created_at": {
       "type": ["null", "string"],
       "format": "date-time"
     }
