@@ -101,12 +101,12 @@ class TwitterWalletMapping(HttpStream, ABC):
             reply_detail_data.append(reply_detail)
 
         # 写入 footprint wallet_address_mapping
-        # requests.post(
-        #     url='https://preview.footprint.network/api/v1/fga/wallet-address-mapping',
-        #     headers={'x-token': '37c6cb13-8be7-43e7-b9bf-dabac84c7fc5'},
-        #     json={'list': reply_user_list}
-        # )
-        print(f'reply_wallet_list: {reply_wallet_list}')
+        requests.post(
+            url='https://preview.footprint.network/api/v1/fga/wallet-address-mapping',
+            headers={'x-token': '37c6cb13-8be7-43e7-b9bf-dabac84c7fc5'},
+            json={'list': reply_wallet_list}
+        )
+        print(f'''reply_wallet_list: {len(reply_wallet_list), pydash.get(reply_wallet_list, '0')}''')
 
         return reply_detail_data
 
