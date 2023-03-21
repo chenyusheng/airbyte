@@ -15,7 +15,10 @@
       "type": ["null", "object"]
     },
     "edit_history_tweet_ids": {
-      "type": ["null", "string"]
+      "type": ["null", "array"],
+      "items": {
+        "type": ["null", "string"]
+      }
     },
     "created_at": {
       "type": ["null", "string"],

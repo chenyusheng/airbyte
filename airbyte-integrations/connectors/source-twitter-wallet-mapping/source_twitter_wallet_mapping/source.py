@@ -39,8 +39,8 @@ class TwitterWalletMapping(HttpStream, ABC):
 
         # api 限制 15 calls/min,所以要sleep 一下
         if 'next_token' in meta.keys():
-            print("next_page_token find next page,sleep 60 seconds!")
-            time.sleep(60)
+            print("next_page_token find next page,sleep 20 seconds!")
+            time.sleep(20)
             return {"pagination_token": meta["next_token"]}
         else:
             return None
