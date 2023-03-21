@@ -11,7 +11,7 @@
     "tweet_id": {
       "type": ["null", "string"]
     },
-    "tweet_author": {
+    "tweet_author_name": {
       "type": ["null", "string"]
     },
     "reply_id": {
