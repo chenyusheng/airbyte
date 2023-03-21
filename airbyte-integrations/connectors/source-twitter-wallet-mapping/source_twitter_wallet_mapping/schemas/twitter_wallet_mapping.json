@@ -11,6 +11,12 @@
     "text": {
       "type": ["null", "string"]
     },
+    "name": {
+      "type": ["null", "string"]
+    },
+    "username": {
+      "type": ["null", "string"]
+    },
     "public_metrics": {
       "type": ["null", "object"]
     },
