@@ -8,6 +8,7 @@ connectionSpecification:
     - twitter_uri
     - fp_api
     - x_token
+    - submit_id
   properties:
     api_key:
       title: API Key Token
@@ -27,3 +28,7 @@ connectionSpecification:
       description: x-token
       type: string
       airbyte_secret: true
+    submit_id:
+      title: Submit ID
+      description: Footprint User ID
+      type: string
