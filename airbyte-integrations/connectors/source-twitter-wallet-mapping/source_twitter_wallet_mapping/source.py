@@ -25,9 +25,12 @@ class TwitterWalletMapping(HttpStream, ABC):
         super().__init__()
         self.api_key = config["api_key"]
         self.twitter_uri = config["twitter_uri"]
+        self.tweet_author_name = config["twitter_uri"].split('/')[3]
+        self.tweet_id = config["twitter_uri"].split('/')[5]
         self.fp_api = config["fp_api"]
         self.x_token = config["x_token"]
         self.submit_id = config["submit_id"]
+        self.created_time = config["created_time"]
 
         self.job_time = datetime.datetime.now()
         self.auth = authenticator
@@ -39,9 +42,21 @@ class TwitterWalletMapping(HttpStream, ABC):
 
     def next_page_token(self, response: requests.Response) -> Optional[Mapping[str, Any]]:
         result = response.json()
+        data = result['data']
         meta = result['meta']
 
-        # api 限制 15 calls/min,所以要sleep 一下
+        if not data:
+            return None
+
+        # This execution time is not created_time, only yesterday's data is run
+        if self.created_time != self.job_time.strftime("%Y-%m-%d"):
+            yesterday = datetime.datetime.now()+datetime.timedelta(days=-1)
+            last_created_at = datetime.datetime.strptime(data[-1]['created_at'], '%Y-%m-%dT%H:%M:%S.000Z')
+            if last_created_at < yesterday:
+                print('The earliest response to this round of requests is beyond yesterday, no need for the next page')
+                return None
+
+        # next_page_token find next page,sleep 20 seconds!
         if 'next_token' in meta.keys():
             print("next_page_token find next page,sleep 20 seconds!")
             time.sleep(20)
@@ -60,14 +75,12 @@ class TwitterWalletMapping(HttpStream, ABC):
     def request_params(
         self, stream_state: Mapping[str, Any], stream_slice: Mapping[str, any] = None, next_page_token: Mapping[str, Any] = None
     ) -> MutableMapping[str, Any]:
-        tweet_author_name = str(self.twitter_uri).split('/')[3]
-        tweet_id = str(self.twitter_uri).split('/')[5]
         print("next_page_token: ", next_page_token)
         param = {
-            'query': 'to:{}'.format(tweet_author_name),
-            'since_id': tweet_id,
-            'tweet.fields': 'author_id,created_at,public_metrics',
-            'expansions': 'author_id',
+            'query': 'to:{}'.format(self.tweet_author_name),
+            # 'since_id': self.tweet_id,       # The use of this parameter is limited by the requirement that the tweet id be within 7 days
+            'tweet.fields': 'author_id,created_at,public_metrics,conversation_id',
+            'expansions': 'author_id,in_reply_to_user_id',
             'user.fields': 'username',
             'max_results': 100
         }
@@ -95,6 +108,11 @@ class TwitterWalletMapping(HttpStream, ABC):
             reply_text = reply_detail['text']
             reply_author = pydash.find(result['includes']['users'], {'id': reply_author_id})
 
+            # filtering conversation_id is not equal to self.tweed_id
+            conversation_id = reply_detail['conversation_id']
+            if conversation_id != self.tweet_id:
+                continue
+
             reply_wallet_list.extend(self.format_reply_text(reply_author_id, reply_author['username'], reply_text))
 
             # reply detail data
@@ -114,7 +132,7 @@ class TwitterWalletMapping(HttpStream, ABC):
                 'job_time': self.job_time
             })
 
-        # 写入 footprint wallet_address_mapping
+        # write to footprint wallet_address_mapping
         requests.post(
             url=self.fp_api,
             headers={'x-token': self.x_token},
@@ -127,16 +145,12 @@ class TwitterWalletMapping(HttpStream, ABC):
     def format_reply_text(self, reply_author_id, reply_author_name, reply_text):
         wallet_json_list = []
 
-        # 定义以太坊钱包地址的正则表达式
         ethereum_regex = r'(0x[a-fA-F0-9]{40})'
 
-        # 定义比特币钱包地址的正则表达式
         bitcoin_regex = r'([13][a-km-zA-HJ-NP-Z0-9]{26,35})'
 
-        # 定义波场(TRON)钱包地址的正则表达式
         tron_regex = r'(T[1-9a-km-zA-HJ-NP-Z]{33})'
 
-        # 使用正则表达式查找所有的钱包地址
         ethereum_addresses = re.findall(ethereum_regex, reply_text)
         bitcoin_addresses = re.findall(bitcoin_regex, reply_text)
         tron_addresses = re.findall(tron_regex, reply_text)

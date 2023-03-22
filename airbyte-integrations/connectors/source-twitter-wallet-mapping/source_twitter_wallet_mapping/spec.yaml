@@ -9,6 +9,7 @@ connectionSpecification:
     - fp_api
     - x_token
     - submit_id
+    - created_time
   properties:
     api_key:
       title: API Key Token
@@ -31,4 +32,8 @@ connectionSpecification:
     submit_id:
       title: Submit ID
       description: Footprint User ID
+      type: string
+    created_time:
+      title: Created Time
+      description: Airbyte Connector Created Time
       type: string

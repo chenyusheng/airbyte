@@ -41,6 +41,10 @@
     "reply_created_at": {
       "type": ["null", "string"],
       "format": "date-time"
+    },
+    "job_time": {
+      "type": ["null", "string"],
+      "format": "date-time"
     }
   }
 }
