@@ -23,17 +23,26 @@ class TwitterWalletMapping(HttpStream, ABC):
 
     def __init__(self, authenticator: TokenAuthenticator, config: Mapping[str, Any], **kwargs):
         super().__init__()
+        self.auth = authenticator
         self.api_key = config["api_key"]
         self.twitter_uri = config["twitter_uri"]
         self.tweet_author_name = config["twitter_uri"].split('/')[3]
         self.tweet_id = config["twitter_uri"].split('/')[5]
+        self.tweet_created_at = self.get_tweet_created_at()
         self.fp_api = config["fp_api"]
         self.x_token = config["x_token"]
         self.submit_id = config["submit_id"]
         self.created_time = config["created_time"]
 
         self.job_time = datetime.datetime.now()
-        self.auth = authenticator
+
+    def get_tweet_created_at(self):
+        tweet_detail = requests.get(
+            url=f'https://api.twitter.com/2/tweets/{self.tweet_id}?tweet.fields=created_at',
+            headers=self.auth.get_auth_header()
+        ).json()
+        tweet_created_at = datetime.datetime.strptime(tweet_detail['data']['created_at'], '%Y-%m-%dT%H:%M:%S.000Z')
+        return tweet_created_at
 
     def path(
         self, stream_state: Mapping[str, Any] = None, stream_slice: Mapping[str, Any] = None, next_page_token: Mapping[str, Any] = None
@@ -48,11 +57,17 @@ class TwitterWalletMapping(HttpStream, ABC):
         if not data:
             return None
 
+        last_reply_created_at = datetime.datetime.strptime(data[-1]['created_at'], '%Y-%m-%dT%H:%M:%S.000Z')
+
+        if last_reply_created_at < self.tweet_created_at:
+            print('The earliest response to this round of requests is beyond tweet created tine, no need for the next page')
+            return None
+
         # This execution time is not created_time, only yesterday's data is run
         if self.created_time != self.job_time.strftime("%Y-%m-%d"):
             yesterday = datetime.datetime.now()+datetime.timedelta(days=-1)
-            last_created_at = datetime.datetime.strptime(data[-1]['created_at'], '%Y-%m-%dT%H:%M:%S.000Z')
-            if last_created_at < yesterday:
+
+            if last_reply_created_at < yesterday:
                 print('The earliest response to this round of requests is beyond yesterday, no need for the next page')
                 return None
 
