@@ -119,8 +119,8 @@ class TwitterWalletMapping(HttpStream, ABC):
             reply_detail_data.append({
                 'submit_id': self.submit_id,
                 'tweet_uri': self.twitter_uri,
-                'tweet_id': str(self.twitter_uri).split('/')[5],
-                'tweet_author_name': str(self.twitter_uri).split('/')[3],
+                'tweet_id': self.tweet_id,
+                'tweet_author_name': self.tweet_author_name,
                 'reply_id': reply_detail['id'],
                 'reply_author_id': reply_author_id,
                 'reply_name': reply_author['name'],
