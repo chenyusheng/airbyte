@@ -26,8 +26,8 @@ class TwitterWalletMapping(HttpStream, ABC):
         self.auth = authenticator
         self.api_key = config["api_key"]
         self.twitter_uri = config["twitter_uri"]
-        self.tweet_author_name = config["twitter_uri"].split('/')[3]
         self.tweet_id = config["twitter_uri"].split('/')[5]
+        self.tweet_author_name = config["twitter_uri"].split('/')[3]
         self.tweet_created_at = self.get_tweet_created_at()
         self.fp_api = config["fp_api"]
         self.x_token = config["x_token"]
@@ -60,10 +60,10 @@ class TwitterWalletMapping(HttpStream, ABC):
         last_reply_created_at = datetime.datetime.strptime(data[-1]['created_at'], '%Y-%m-%dT%H:%M:%S.000Z')
 
         if last_reply_created_at < self.tweet_created_at:
-            print('The earliest response to this round of requests is beyond tweet created tine, no need for the next page')
+            print('The earliest response to this round of requests is beyond tweet created time, no need for the next page')
             return None
 
-        # This execution time is not created_time, only yesterday's data is run
+        # This execution time is not connector created_time, only yesterday's data is run
         if self.created_time != self.job_time.strftime("%Y-%m-%d"):
             yesterday = datetime.datetime.now()+datetime.timedelta(days=-1)
 
@@ -124,8 +124,7 @@ class TwitterWalletMapping(HttpStream, ABC):
             reply_author = pydash.find(result['includes']['users'], {'id': reply_author_id})
 
             # filtering conversation_id is not equal to self.tweed_id
-            conversation_id = reply_detail['conversation_id']
-            if conversation_id != self.tweet_id:
+            if reply_detail['conversation_id'] != self.tweet_id:
                 continue
 
             reply_wallet_list.extend(self.format_reply_text(reply_author_id, reply_author['username'], reply_text))
