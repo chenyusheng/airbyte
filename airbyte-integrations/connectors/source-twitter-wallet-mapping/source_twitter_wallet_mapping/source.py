@@ -92,7 +92,7 @@ class TwitterWalletMapping(HttpStream, ABC):
     ) -> MutableMapping[str, Any]:
         print("next_page_token: ", next_page_token)
         param = {
-            'query': 'to:{}'.format(self.tweet_author_name),
+            'query': 'in_reply_to_tweet_id:{}'.format(self.tweet_id),
             # 'since_id': self.tweet_id,       # The use of this parameter is limited by the requirement that the tweet id be within 7 days
             'tweet.fields': 'author_id,created_at,public_metrics,conversation_id',
             'expansions': 'author_id,in_reply_to_user_id',
@@ -122,10 +122,6 @@ class TwitterWalletMapping(HttpStream, ABC):
             reply_author_id = reply_detail['author_id']
             reply_text = reply_detail['text']
             reply_author = pydash.find(result['includes']['users'], {'id': reply_author_id})
-
-            # filtering conversation_id is not equal to self.tweed_id
-            if reply_detail['conversation_id'] != self.tweet_id:
-                continue
 
             reply_wallet_list.extend(self.format_reply_text(reply_author_id, reply_author['username'], reply_text))
 
