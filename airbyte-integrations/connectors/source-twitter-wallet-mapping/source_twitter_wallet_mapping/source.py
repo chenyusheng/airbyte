@@ -53,8 +53,6 @@ class TwitterWalletMapping(HttpStream, ABC):
         data = result['data']
         meta = result['meta']
 
-        return None
-
         if not data:
             return None
 
