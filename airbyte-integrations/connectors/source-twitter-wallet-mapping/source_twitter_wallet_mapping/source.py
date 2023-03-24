@@ -136,8 +136,8 @@ class TwitterWalletMapping(HttpStream, ABC):
                 'reply_name': reply_author['name'],
                 'reply_username': reply_author['username'],
                 'reply_text': reply_text,
-                'reply_public_metrics': reply_detail['public_metrics'],
-                'reply_edit_history_tweet_ids': reply_detail['edit_history_tweet_ids'],
+                # 'reply_public_metrics': reply_detail['public_metrics'],
+                # 'reply_edit_history_tweet_ids': reply_detail['edit_history_tweet_ids'],
                 'reply_created_at': reply_detail['created_at'],
                 'job_time': self.job_time
             })

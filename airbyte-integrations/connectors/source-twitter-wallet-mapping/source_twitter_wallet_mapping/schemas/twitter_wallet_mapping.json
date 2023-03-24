@@ -29,15 +29,6 @@
     "reply_username": {
       "type": ["null", "string"]
     },
-    "reply_public_metrics": {
-      "type": ["null", "object"]
-    },
-    "edit_history_tweet_ids": {
-      "type": ["null", "array"],
-      "items": {
-        "type": ["null", "string"]
-      }
-    },
     "reply_created_at": {
       "type": ["null", "string"],
       "format": "date-time"
