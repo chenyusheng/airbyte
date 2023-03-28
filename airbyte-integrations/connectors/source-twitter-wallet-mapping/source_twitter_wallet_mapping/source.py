@@ -40,7 +40,8 @@ class TwitterWalletMapping(HttpStream, ABC):
             url=f'https://api.twitter.com/2/tweets/{self.tweet_id}?tweet.fields=created_at',
             headers=self.auth.get_auth_header()
         ).json()
-        tweet_created_at = datetime.datetime.strptime(tweet_detail['data']['created_at'], '%Y-%m-%dT%H:%M:%S.000Z')
+        tweet_created_at = datetime.datetime.strptime(str(tweet_detail['data']['created_at']).split('.')[0], '%Y-%m-%dT%H:%M:%S')
+        print('====> tweet_created_at:', tweet_created_at)
         return tweet_created_at
 
     def path(
@@ -57,6 +58,7 @@ class TwitterWalletMapping(HttpStream, ABC):
             return None
 
         last_reply_created_at = datetime.datetime.strptime(str(data[-1]['created_at']).split('.')[0], '%Y-%m-%dT%H:%M:%S')
+        print('====> last_reply_created_at:', last_reply_created_at)
 
         if last_reply_created_at < self.tweet_created_at:
             print('The earliest response to this round of requests is beyond tweet created time, no need for the next page')
