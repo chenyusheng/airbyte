@@ -56,7 +56,7 @@ class TwitterWalletMapping(HttpStream, ABC):
         if not data:
             return None
 
-        last_reply_created_at = datetime.datetime.strptime(data[-1]['created_at'], '%Y-%m-%dT%H:%M:%S.000Z')
+        last_reply_created_at = datetime.datetime.strptime(str(data[-1]['created_at']).split('.')[0], '%Y-%m-%dT%H:%M:%S')
 
         if last_reply_created_at < self.tweet_created_at:
             print('The earliest response to this round of requests is beyond tweet created time, no need for the next page')
