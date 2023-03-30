@@ -7,7 +7,6 @@ connectionSpecification:
     - server_token
     - guild_id
     - bot_id
-    - guild_name
   additionalProperties: false
   properties:
     server_token:
