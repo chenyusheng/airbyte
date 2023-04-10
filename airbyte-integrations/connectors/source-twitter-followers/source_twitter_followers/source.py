@@ -14,6 +14,10 @@ from airbyte_cdk.sources.streams import Stream
 from airbyte_cdk.sources.streams.http import HttpStream
 from airbyte_cdk.sources.streams.http.auth import TokenAuthenticator
 
+from .stream_followers import Followers
+from .stream_tweet_metrics import TwitterTweetMetric
+from .stream_users_lookup import UsersLookup
+
 
 # Basic full refresh stream
 class TwitterFollowersStream(HttpStream, ABC):
@@ -187,11 +191,14 @@ class SourceTwitterFollowers(AbstractSource):
     def streams(self, config: Mapping[str, Any]) -> List[Stream]:
         """
         Replace the streams below with your own streams.
-
         :param config: A Mapping of the user input configuration as defined in the connector spec.
         """
         # remove the authenticator if not required.
         print("config \n", config)
         auth = TokenAuthenticator(token=config["api_key"])  # Oauth2Authenticator is also available if you need oauth support
         print("auth \n", auth.get_auth_header())
-        return [Followers(authenticator=auth, config=config), TwitterTweetMetrics(authenticator=auth, config=config)]
+        return [
+            # FollowersStream(authenticator=auth, config=config),
+            # TweetMetricsStream(authenticator=auth, config=config),
+            UsersLookup(authenticator=auth, config=config)
+        ]
