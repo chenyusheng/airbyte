@@ -45,7 +45,6 @@ class TwitterTweetMetrics(HttpStream, ABC):
     def next_page_token(self, response: requests.Response) -> Optional[Mapping[str, Any]]:
         result = response.json()
         meta = result['meta']
-        return None
 
         # api 限制 15 calls/min,所以要sleep 一下
         if 'next_token' in meta.keys():
