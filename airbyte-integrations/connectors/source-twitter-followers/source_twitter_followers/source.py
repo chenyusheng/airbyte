@@ -169,8 +169,10 @@ class SourceTwitterFollowers(AbstractSource):
     def check_connection(self, logger, config) -> Tuple[bool, any]:
         """
          Implement a connection check to validate that the user-provided config can be used to connect to the underlying API
+
         See https://github.com/airbytehq/airbyte/blob/master/airbyte-integrations/connectors/source-stripe/source_stripe/source.py#L232
         for an example.
+
         :param config:  the user-input config object conforming to the connector's spec.yaml
         :param logger:  logger object
         :return Tuple[bool, any]: (True, None) if the input config can be used to connect to the API successfully, (False, error) otherwise.
@@ -185,6 +187,7 @@ class SourceTwitterFollowers(AbstractSource):
     def streams(self, config: Mapping[str, Any]) -> List[Stream]:
         """
         Replace the streams below with your own streams.
+
         :param config: A Mapping of the user input configuration as defined in the connector spec.
         """
         # remove the authenticator if not required.
