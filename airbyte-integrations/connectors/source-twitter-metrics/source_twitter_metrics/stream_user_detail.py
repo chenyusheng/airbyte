@@ -1,5 +1,4 @@
 import datetime
-import time
 from abc import ABC
 import json
 from airbyte_cdk.sources.streams.http import HttpStream
@@ -8,7 +7,7 @@ import requests
 from typing import Any, Iterable, List, Mapping, MutableMapping, Optional, Tuple, Union
 
 
-class UsersLookup(HttpStream, ABC):
+class UserDetail(HttpStream, ABC):
     url_base = "https://api.twitter.com"
     primary_key = "metrics"
 
@@ -66,12 +65,11 @@ class UsersLookup(HttpStream, ABC):
 
         user_lookup = result['data']
 
-        print(user_lookup)
-
         return [
             {
                 'handler': self.screen_name,
-                'twitter_user_id': user_lookup['id'],
+                'id': user_lookup['id'],
+                'timestamp': self.job_time,
                 'description': user_lookup['description'],
                 'profile_image_url': user_lookup['profile_image_url'],
                 'followers_count': user_lookup['public_metrics']['followers_count'],
@@ -81,7 +79,6 @@ class UsersLookup(HttpStream, ABC):
                 'name': user_lookup['name']
             }
         ]
-
 
     def path(
             self, stream_state: Mapping[str, Any] = None, stream_slice: Mapping[str, Any] = None, next_page_token: Mapping[str, Any] = None

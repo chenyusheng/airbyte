@@ -8,7 +8,7 @@ import requests
 from typing import Any, Iterable, List, Mapping, MutableMapping, Optional, Tuple, Union
 
 
-class TwitterTweetMetric(HttpStream, ABC):
+class TwitterTweetMetrics(HttpStream, ABC):
     url_base = "https://api.twitter.com"
     primary_key = "metrics"
 
@@ -45,6 +45,7 @@ class TwitterTweetMetric(HttpStream, ABC):
     def next_page_token(self, response: requests.Response) -> Optional[Mapping[str, Any]]:
         result = response.json()
         meta = result['meta']
+        return None
 
         # api 限制 15 calls/min,所以要sleep 一下
         if 'next_token' in meta.keys():

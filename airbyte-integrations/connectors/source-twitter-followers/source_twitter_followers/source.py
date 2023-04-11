@@ -14,10 +14,6 @@ from airbyte_cdk.sources.streams import Stream
 from airbyte_cdk.sources.streams.http import HttpStream
 from airbyte_cdk.sources.streams.http.auth import TokenAuthenticator
 
-from .stream_followers import Followers
-from .stream_tweet_metrics import TwitterTweetMetric
-from .stream_users_lookup import UsersLookup
-
 
 # Basic full refresh stream
 class TwitterFollowersStream(HttpStream, ABC):
@@ -173,10 +169,8 @@ class SourceTwitterFollowers(AbstractSource):
     def check_connection(self, logger, config) -> Tuple[bool, any]:
         """
          Implement a connection check to validate that the user-provided config can be used to connect to the underlying API
-
         See https://github.com/airbytehq/airbyte/blob/master/airbyte-integrations/connectors/source-stripe/source_stripe/source.py#L232
         for an example.
-
         :param config:  the user-input config object conforming to the connector's spec.yaml
         :param logger:  logger object
         :return Tuple[bool, any]: (True, None) if the input config can be used to connect to the API successfully, (False, error) otherwise.
@@ -197,8 +191,4 @@ class SourceTwitterFollowers(AbstractSource):
         print("config \n", config)
         auth = TokenAuthenticator(token=config["api_key"])  # Oauth2Authenticator is also available if you need oauth support
         print("auth \n", auth.get_auth_header())
-        return [
-            # FollowersStream(authenticator=auth, config=config),
-            # TweetMetricsStream(authenticator=auth, config=config),
-            UsersLookup(authenticator=auth, config=config)
-        ]
+        return [Followers(authenticator=auth, config=config), TwitterTweetMetrics(authenticator=auth, config=config)]
