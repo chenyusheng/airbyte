@@ -47,12 +47,13 @@ class TwitterTweetMetrics(HttpStream, ABC):
         meta = result['meta']
 
         # api 限制 15 calls/min,所以要sleep 一下
-        if 'next_token' in meta.keys():
-            print("next_page_token find next page,sleep 60 seconds!")
-            time.sleep(60)
-            return {"pagination_token": meta["next_token"]}
-        else:
-            return None
+        # if 'next_token' in meta.keys():
+        #     print("next_page_token find next page,sleep 60 seconds!")
+        #     time.sleep(60)
+        #     return {"pagination_token": meta["next_token"]}
+        # else:
+        #     return None
+        return None
 
     # use auth now
     def request_headers(

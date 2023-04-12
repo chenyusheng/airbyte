@@ -33,6 +33,12 @@
         "integer"
       ]
     },
+    "following_count": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
     "tweet_count": {
       "type": [
         "null",
