@@ -89,9 +89,9 @@ class ChatInfo(TelegramStream):
         return [
             {
                 'chat_id': self.chat_id,
-                'chat_name': info['title'],
-                'type': info['type'],
-                'invite_link': info['invite_link'],
+                'chat_name': info.get('title'),
+                'type': info.get('type'),
+                'invite_link': info.get('invite_link'),
                 'timestamp': self.job_time,
             }
         ]
@@ -142,8 +142,8 @@ class ChatMemberCount(TelegramStream):
         return [
             {
                 'chat_id': self.chat_id,
-                'chat_name': self.chat_info['chat_name'] if self.chat_info is not None and self.chat_info['chat_name'] is not None else 'None',
-                'chat_member_count': result['result'],
+                'chat_name': self.chat_info.get('chat_name') if self.chat_info.get('chat_name') is not None else 'None',
+                'chat_member_count': result.get('result'),
                 'timestamp': self.job_time,
             }
         ]
