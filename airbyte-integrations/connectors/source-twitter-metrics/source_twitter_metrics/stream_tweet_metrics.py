@@ -42,9 +42,13 @@ class TwitterTweetMetrics(HttpStream, ABC):
         """
         return 10
 
+    @property
+    def propertyraise_on_http_errors(self) -> bool:
+        return False
+
     def next_page_token(self, response: requests.Response) -> Optional[Mapping[str, Any]]:
-        result = response.json()
-        meta = result['meta']
+        # result = response.json()
+        # meta = result['meta']
 
         # api 限制 15 calls/min,所以要sleep 一下
         # if 'next_token' in meta.keys():
