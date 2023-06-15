@@ -21,7 +21,7 @@ class SourceDiscord(AbstractSource):
     def get_guild_name(self, guild_id: str, headers):
         guild_result = requests.get(f'https://discord.com/api/v10/guilds/{guild_id}/preview', headers=headers)
         guild_result = json.loads(guild_result.text)
-        guild_name = guild_result['name']
+        guild_name = guild_result.get('name', '')
         return guild_name
 
     def check_connection(self, _, config) -> Tuple[bool, str]:
