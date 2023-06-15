@@ -58,7 +58,3 @@ class SourceDiscord(AbstractSource):
             member_stream,
             role_stream
         ]
-
-if __name__ == '__main__':
-    r = ''
-    print()
