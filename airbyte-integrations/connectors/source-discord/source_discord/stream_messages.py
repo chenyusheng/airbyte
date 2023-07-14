@@ -26,7 +26,7 @@ class DiscordMessagesStream(HttpStream, ABC):
         super().__init__()
         self.config = config
         self.message_limit = 100
-        self.max_page_limit = 100
+        self.max_page_limit = 10
         self.channel_id_current_page_limit = {}
         self.server_token = config["server_token"]
         self.guild_id = config["guild_id"]
